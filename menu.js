@@ -31,3 +31,8 @@ document.getElementById('backToWorldsButton').addEventListener('click', () => {
   document.querySelector('.create-world-menu').style.display = 'none';
   document.querySelector('.worlds-menu').style.display = 'block';
 });
+
+document.getElementById('startWorldButton').addEventListener('click', () => {
+  const seed = Math.floor(Math.random() * 1000000);
+  window.startGame(seed);
+});
