@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "3D Sandbox",
+  "name": "Infinite Sandbox",
   "version": "1.0",
   "description": "A 3D sandbox game as a Chrome extension.",
   "permissions": ["tabs"],
@@ -8,6 +8,6 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "Open 3D Sandbox"
+    "default_title": "Open Infinite Sandbox"
   }
 }
