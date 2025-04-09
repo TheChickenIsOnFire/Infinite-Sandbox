@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "3D Sandbox",
+  "version": "1.0",
+  "description": "A 3D sandbox game as a Chrome extension.",
+  "permissions": ["tabs"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Open 3D Sandbox"
+  }
+}
