@@ -18,7 +18,7 @@
     color: #fff;
   }
 
-  .menu {
+  .menu, .options-menu {
     text-align: center;
     background: rgba(0, 0, 0, 0.4);
     padding: 40px;
@@ -55,8 +55,16 @@
   <div class="menu">
     <h1>Infinite Sandbox</h1>
     <button>Start</button>
-    <button>Options</button>
+    <button id="optionsButton">Options</button>
     <button id="exitButton">Exit</button>
+  </div>
+
+  <div class="options-menu" style="display:none;">
+    <h1>Options</h1>
+    <p>Graphics Quality: [Placeholder]</p>
+    <p>Sound Volume: [Placeholder]</p>
+    <p>Controls: [Placeholder]</p>
+    <button id="backButton">Back</button>
   </div>
 <script src="menu.js"></script>
 </body>
