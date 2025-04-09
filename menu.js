@@ -1,3 +1,5 @@
+import { startGame } from './game.js';
+
 document.getElementById('exitButton').addEventListener('click', () => {
   window.close();
 });
@@ -34,5 +36,5 @@ document.getElementById('backToWorldsButton').addEventListener('click', () => {
 
 document.getElementById('startWorldButton').addEventListener('click', () => {
   const seed = Math.floor(Math.random() * 1000000);
-  window.startGame(seed);
+  startGame(seed);
 });

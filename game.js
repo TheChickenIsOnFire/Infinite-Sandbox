@@ -58,7 +58,7 @@ function animate() {
   renderer.render(scene, camera);
 }
 
-window.startGame = function(seed) {
+export function startGame(seed) {
   document.querySelector('.menu').style.display = 'none';
   document.querySelector('.options-menu').style.display = 'none';
   document.querySelector('.worlds-menu').style.display = 'none';
@@ -66,4 +66,4 @@ window.startGame = function(seed) {
   document.getElementById('gameContainer').style.display = 'block';
 
   init(seed);
-};
+}
