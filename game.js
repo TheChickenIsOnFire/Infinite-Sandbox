@@ -13,6 +13,9 @@ function init(seed) {
 
   renderer = new THREE.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.domElement.style.position = 'absolute';
+  renderer.domElement.style.top = '0';
+  renderer.domElement.style.left = '0';
   document.getElementById('gameContainer').appendChild(renderer.domElement);
 
   const light = new THREE.DirectionalLight(0xffffff, 1);
@@ -31,6 +34,7 @@ function init(seed) {
 
   generateChunk(0, 0, blockMaterial, seed);
 
+  window.addEventListener('resize', onWindowResize);
   animate();
 }
 
@@ -56,6 +60,12 @@ function generateChunk(chunkX, chunkZ, material, seed) {
 function animate() {
   requestAnimationFrame(animate);
   renderer.render(scene, camera);
+}
+
+function onWindowResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
 export function startGame(seed) {
