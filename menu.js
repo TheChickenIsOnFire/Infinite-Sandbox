@@ -1,8 +1,8 @@
 import { startGame } from './game.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('exitButton').addEventListener('click', () => {
-    window.close();
+  document.getElementById('exitButton').addEventListener('click', function() {
+    chrome.tabs.getCurrent((tab) => chrome.tabs.remove(tab.id));
   });
 
   document.getElementById('optionsButton').addEventListener('click', () => {

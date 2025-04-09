@@ -11,7 +11,7 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_popup": "sandbox.html",
-    "default_title": "Open Infinite Sandbox"
+    "default_popup": "popup.html",
+    "default_title": "Infinite Sandbox Menu"
   }
 }
