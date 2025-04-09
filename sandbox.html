@@ -56,7 +56,12 @@
     <h1>Infinite Sandbox</h1>
     <button>Start</button>
     <button>Options</button>
-    <button>Exit</button>
+    <button id="exitButton">Exit</button>
   </div>
+<script>
+  document.getElementById('exitButton').addEventListener('click', () => {
+    window.close();
+  });
+</script>
 </body>
 </html>
