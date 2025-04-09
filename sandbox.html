@@ -18,7 +18,7 @@
     color: #fff;
   }
 
-  .menu, .options-menu {
+  .menu, .options-menu, .worlds-menu, .create-world-menu {
     text-align: center;
     background: rgba(0, 0, 0, 0.4);
     padding: 40px;
@@ -54,7 +54,7 @@
 <body>
   <div class="menu">
     <h1>Infinite Sandbox</h1>
-    <button>Start</button>
+    <button id="startButton">Start</button>
     <button id="optionsButton">Options</button>
     <button id="exitButton">Exit</button>
   </div>
@@ -65,6 +65,25 @@
     <p>Sound Volume: [Placeholder]</p>
     <p>Controls: [Placeholder]</p>
     <button id="backButton">Back</button>
+  </div>
+
+  <div class="worlds-menu" style="display:none;">
+    <h1>Your Worlds</h1>
+    <ul>
+      <li>World 1 (placeholder)</li>
+      <li>World 2 (placeholder)</li>
+    </ul>
+    <button id="createWorldButton">Create New World</button>
+    <button id="backToMainButton">Back</button>
+  </div>
+
+  <div class="create-world-menu" style="display:none;">
+    <h1>Create New World</h1>
+    <p>World Name: [Placeholder]</p>
+    <p>Seed: [Placeholder]</p>
+    <p>World Size: [Placeholder]</p>
+    <p>Game Mode: [Placeholder]</p>
+    <button id="backToWorldsButton">Back</button>
   </div>
 <script src="menu.js"></script>
 </body>

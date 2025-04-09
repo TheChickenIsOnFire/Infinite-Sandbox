@@ -11,3 +11,23 @@ document.getElementById('backButton').addEventListener('click', () => {
   document.querySelector('.options-menu').style.display = 'none';
   document.querySelector('.menu').style.display = 'block';
 });
+
+document.getElementById('startButton').addEventListener('click', () => {
+  document.querySelector('.menu').style.display = 'none';
+  document.querySelector('.worlds-menu').style.display = 'block';
+});
+
+document.getElementById('createWorldButton').addEventListener('click', () => {
+  document.querySelector('.worlds-menu').style.display = 'none';
+  document.querySelector('.create-world-menu').style.display = 'block';
+});
+
+document.getElementById('backToMainButton').addEventListener('click', () => {
+  document.querySelector('.worlds-menu').style.display = 'none';
+  document.querySelector('.menu').style.display = 'block';
+});
+
+document.getElementById('backToWorldsButton').addEventListener('click', () => {
+  document.querySelector('.create-world-menu').style.display = 'none';
+  document.querySelector('.worlds-menu').style.display = 'block';
+});
