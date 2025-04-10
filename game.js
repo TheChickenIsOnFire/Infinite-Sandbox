@@ -169,6 +169,29 @@ function generateChunk(chunkX, chunkZ, material, seed) {
 function animate() {
   requestAnimationFrame(animate);
 
+  // Dynamically generate chunks around player every frame
+  const textureLoader = new THREE.TextureLoader();
+  const blockTexture = textureLoader.load('assets/textures/blocks/block.png');
+  blockTexture.magFilter = THREE.NearestFilter;
+  blockTexture.minFilter = THREE.NearestMipMapNearestFilter;
+  const blockMaterial = new THREE.MeshLambertMaterial({ map: blockTexture });
+
+  const playerChunkX = Math.floor(camera.position.x / (chunkSize * blockSize));
+  const playerChunkZ = Math.floor(camera.position.z / (chunkSize * blockSize));
+  const radius = 1; // generate 3x3 chunks around player
+
+  for (let dx = -radius; dx <= radius; dx++) {
+    for (let dz = -radius; dz <= radius; dz++) {
+      const chunkX = playerChunkX + dx;
+      const chunkZ = playerChunkZ + dz;
+      const key = `${chunkX},${chunkZ}`;
+      if (!chunks[key]) {
+        generateChunk(chunkX, chunkZ, blockMaterial, 0);
+        chunks[key] = true;
+      }
+    }
+  }
+
   // Calculate forward and right vectors from yaw
   const forward = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw));
   const right = new THREE.Vector3(-forward.z, 0, forward.x);
@@ -199,37 +222,69 @@ function animate() {
   const playerWidth = 0.6;
   const playerHeight = 1.8;
 
-  // Check collisions with blocks
-  let collision = false;
+  // Improved collision detection with tolerance and local filtering
+  const tolerance = 0.05;
+  let newX = newPos.x;
+  let newZ = newPos.z;
+
+  // Check X axis movement
+  let collisionX = false;
   scene.traverse((obj) => {
-    if (obj.isMesh && obj.geometry.type === 'BoxGeometry') {
-      const pos = obj.position;
-      // AABB of block
-      const minX = pos.x - 0.5, maxX = pos.x + 0.5;
-      const minY = pos.y - 0.5, maxY = pos.y + 0.5;
-      const minZ = pos.z - 0.5, maxZ = pos.z + 0.5;
+    if (!obj.isMesh || obj.geometry.type !== 'BoxGeometry') return;
+    const pos = obj.position;
+    if (Math.abs(pos.x - newPos.x) > 2 || Math.abs(pos.z - camera.position.z) > 2) return; // skip far blocks
 
-      // AABB of player (feet to head)
-      const playerMinX = newPos.x - playerWidth/2;
-      const playerMaxX = newPos.x + playerWidth/2;
-      const playerMinY = newPos.y - eyeHeight;
-      const playerMaxY = newPos.y;
-      const playerMinZ = newPos.z - playerWidth/2;
-      const playerMaxZ = newPos.z + playerWidth/2;
+    const minX = pos.x - 0.5, maxX = pos.x + 0.5;
+    const minY = pos.y - 0.5, maxY = pos.y + 0.5;
+    const minZ = pos.z - 0.5, maxZ = pos.z + 0.5;
 
-      const overlapX = (playerMinX <= maxX) && (playerMaxX >= minX);
-      const overlapY = (playerMinY <= maxY) && (playerMaxY >= minY);
-      const overlapZ = (playerMinZ <= maxZ) && (playerMaxZ >= minZ);
+    const playerMinX = newX - playerWidth/2 - tolerance;
+    const playerMaxX = newX + playerWidth/2 + tolerance;
+    const playerMinY = camera.position.y - eyeHeight;
+    const playerMaxY = camera.position.y;
+    const playerMinZ = camera.position.z - playerWidth/2;
+    const playerMaxZ = camera.position.z + playerWidth/2;
 
-      if (overlapX && overlapY && overlapZ) {
-        collision = true;
-      }
+    const overlapX = (playerMinX <= maxX) && (playerMaxX >= minX);
+    const overlapY = (playerMinY <= maxY) && (playerMaxY >= minY);
+    const overlapZ = (playerMinZ <= maxZ) && (playerMaxZ >= minZ);
+
+    if (overlapX && overlapY && overlapZ) {
+      collisionX = true;
     }
   });
+  if (!collisionX) {
+    camera.position.x = newX;
+  }
 
-  if (!collision) {
-    camera.position.x = newPos.x;
-    camera.position.z = newPos.z;
+  // Check Z axis movement
+  let collisionZ = false;
+  scene.traverse((obj) => {
+    if (!obj.isMesh || obj.geometry.type !== 'BoxGeometry') return;
+    const pos = obj.position;
+    if (Math.abs(pos.x - camera.position.x) > 2 || Math.abs(pos.z - newPos.z) > 2) return; // skip far blocks
+
+    const minX = pos.x - 0.5, maxX = pos.x + 0.5;
+    const minY = pos.y - 0.5, maxY = pos.y + 0.5;
+    const minZ = pos.z - 0.5, maxZ = pos.z + 0.5;
+
+    const playerMinX = camera.position.x - playerWidth/2;
+    const playerMaxX = camera.position.x + playerWidth/2;
+    const playerMinY = camera.position.y - eyeHeight;
+    const playerMaxY = camera.position.y;
+    const playerMinZ = newZ - playerWidth/2 - tolerance;
+    const playerMaxZ = newZ + playerWidth/2 + tolerance;
+
+    const overlapX = (playerMinX <= maxX) && (playerMaxX >= minX);
+    const overlapY = (playerMinY <= maxY) && (playerMaxY >= minY);
+    const overlapZ = (playerMinZ <= maxZ) && (playerMaxZ >= minZ);
+
+    if (overlapX && overlapY && overlapZ) {
+      collisionZ = true;
+    }
+  });
+  if (!collisionZ) {
+    camera.position.z = newZ;
   }
 
   // Jumping
