@@ -10,8 +10,8 @@ const eyeHeight = 1.8; // approx 2 blocks tall
 const keysPressed = {};
 let velocityY = 0;
 const moveSpeed = 0.5;
-const jumpSpeed = 0.3; // reduced jump height
-const gravity = 0.05;
+const jumpSpeed = 0.4; // slightly higher jump
+const gravity = 0.02;  // reduced gravity for smoother fall
 
 // Player velocity for smooth movement
 const velocity = new THREE.Vector3(0, 0, 0);
