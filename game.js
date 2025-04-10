@@ -350,7 +350,7 @@ function animate() {
   newPos.z += velocity.z;
 
   // Player bounding box size
-  const playerWidth = 0.6;
+  const playerWidth = 0.4;  // narrower hitbox for smoother movement
   const playerHeight = 1.8;
 
   // Improved collision detection with tolerance and local filtering
