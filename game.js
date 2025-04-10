@@ -1,6 +1,14 @@
 import * as THREE from './libs/three.module.min.js';
 
 let scene, camera, renderer;
+
+// Movement state
+const keysPressed = {};
+let velocityY = 0;
+const moveSpeed = 0.5;
+const jumpSpeed = 1.0;
+const gravity = 0.05;
+let isJumping = false;
 let chunkSize = 16;
 let blockSize = 1;
 let chunks = {};
@@ -35,6 +43,15 @@ function init(seed) {
   generateChunk(0, 0, blockMaterial, seed);
 
   window.addEventListener('resize', onWindowResize);
+
+  // Movement key listeners
+  window.addEventListener('keydown', (e) => {
+    keysPressed[e.key.toLowerCase()] = true;
+  });
+  window.addEventListener('keyup', (e) => {
+    keysPressed[e.key.toLowerCase()] = false;
+  });
+
   animate();
 }
 
@@ -59,6 +76,46 @@ function generateChunk(chunkX, chunkZ, material, seed) {
 
 function animate() {
   requestAnimationFrame(animate);
+
+  // Movement direction vector
+  const direction = new THREE.Vector3();
+
+  if (keysPressed['w'] || keysPressed['arrowup']) {
+    direction.z -= 1;
+  }
+  if (keysPressed['s'] || keysPressed['arrowdown']) {
+    direction.z += 1;
+  }
+  if (keysPressed['a'] || keysPressed['arrowleft']) {
+    direction.x -= 1;
+  }
+  if (keysPressed['d'] || keysPressed['arrowright']) {
+    direction.x += 1;
+  }
+
+  direction.normalize();
+
+  // Move camera horizontally
+  camera.position.x += direction.x * moveSpeed;
+  camera.position.z += direction.z * moveSpeed;
+
+  // Jumping
+  if ((keysPressed[' '] || keysPressed['space']) && !isJumping) {
+    velocityY = jumpSpeed;
+    isJumping = true;
+  }
+
+  // Apply gravity
+  velocityY -= gravity;
+  camera.position.y += velocityY;
+
+  // Ground collision
+  if (camera.position.y <= 20) {
+    camera.position.y = 20;
+    velocityY = 0;
+    isJumping = false;
+  }
+
   renderer.render(scene, camera);
 }
 
