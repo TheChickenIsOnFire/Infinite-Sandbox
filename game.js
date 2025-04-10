@@ -345,7 +345,7 @@ function animate() {
 
     const playerMinX = newX - playerWidth/2 - tolerance;
     const playerMaxX = newX + playerWidth/2 + tolerance;
-    const playerMinY = camera.position.y - eyeHeight;
+    const playerMinY = camera.position.y - eyeHeight + 0.1; // offset to avoid ground sticking
     const playerMaxY = camera.position.y;
     const playerMinZ = camera.position.z - playerWidth/2;
     const playerMaxZ = camera.position.z + playerWidth/2;
@@ -375,7 +375,7 @@ function animate() {
 
     const playerMinX = camera.position.x - playerWidth/2;
     const playerMaxX = camera.position.x + playerWidth/2;
-    const playerMinY = camera.position.y - eyeHeight;
+    const playerMinY = camera.position.y - eyeHeight + 0.1; // offset to avoid ground sticking
     const playerMaxY = camera.position.y;
     const playerMinZ = newZ - playerWidth/2 - tolerance;
     const playerMaxZ = newZ + playerWidth/2 + tolerance;
