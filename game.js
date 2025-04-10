@@ -21,7 +21,7 @@ let chunks = {};
 function init(seed) {
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-  camera.position.set(0, 21.6, 0); // eye level 1.6 above ground, centered
+  camera.position.set(0, 1.6, 0); // eye level 1.6 above ground, centered
   yaw = 0;
   pitch = 0;
 
@@ -183,7 +183,7 @@ function animate() {
   camera.position.y += velocityY;
 
   // Ground collision
-  const groundHeight = 20; // block ground level
+  const groundHeight = 0; // block ground level (terrain base)
   const eyeHeight = 1.6;
   if (camera.position.y <= groundHeight + eyeHeight) {
     camera.position.y = groundHeight + eyeHeight;
