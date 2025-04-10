@@ -195,6 +195,16 @@ function generateChunk(chunkX, chunkZ, material, seed) {
         const wx = (chunkX * chunkSize + x);
         const wy = y;
         const wz = (chunkZ * chunkSize + z);
+
+        // Clear spawn area: 3x3x3 cube centered at (0,0,0)
+        if (
+          wx >= -1 && wx <= 1 &&
+          wy >= 0 && wy <= 3 &&
+          wz >= -1 && wz <= 1
+        ) {
+          continue; // skip block creation in spawn area
+        }
+
         blocks[`${wx},${wy},${wz}`] = true;
       }
     }
