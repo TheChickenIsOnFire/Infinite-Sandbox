@@ -9,6 +9,11 @@ const moveSpeed = 0.5;
 const jumpSpeed = 1.0;
 const gravity = 0.05;
 let isJumping = false;
+
+// Mouse look state
+let yaw = 0;
+let pitch = 0;
+const pitchLimit = Math.PI / 2 - 0.1; // prevent flipping
 let chunkSize = 16;
 let blockSize = 1;
 let chunks = {};
@@ -16,8 +21,9 @@ let chunks = {};
 function init(seed) {
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-  camera.position.set(0, 20, 20);
-  camera.lookAt(0, 0, 0);
+  camera.position.set(0, 21.6, 20); // eye level 1.6 above ground
+  yaw = 0;
+  pitch = 0;
 
   renderer = new THREE.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -52,7 +58,29 @@ function init(seed) {
     keysPressed[e.key.toLowerCase()] = false;
   });
 
+  // Pointer lock for mouse look
+  renderer.domElement.addEventListener('click', () => {
+    renderer.domElement.requestPointerLock();
+  });
+
+  document.addEventListener('pointerlockchange', () => {
+    if (document.pointerLockElement === renderer.domElement) {
+      document.addEventListener('mousemove', onMouseMove, false);
+    } else {
+      document.removeEventListener('mousemove', onMouseMove, false);
+    }
+  });
+
   animate();
+}
+
+function onMouseMove(event) {
+  const sensitivity = 0.002;
+  yaw -= event.movementX * sensitivity;
+  pitch -= event.movementY * sensitivity;
+
+  // Clamp pitch
+  pitch = Math.max(-pitchLimit, Math.min(pitchLimit, pitch));
 }
 
 function generateChunk(chunkX, chunkZ, material, seed) {
@@ -77,27 +105,30 @@ function generateChunk(chunkX, chunkZ, material, seed) {
 function animate() {
   requestAnimationFrame(animate);
 
-  // Movement direction vector
-  const direction = new THREE.Vector3();
+  // Calculate forward and right vectors from yaw
+  const forward = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw));
+  const right = new THREE.Vector3(-forward.z, 0, forward.x);
+
+  const moveDir = new THREE.Vector3();
 
   if (keysPressed['w'] || keysPressed['arrowup']) {
-    direction.z -= 1;
+    moveDir.add(forward);
   }
   if (keysPressed['s'] || keysPressed['arrowdown']) {
-    direction.z += 1;
+    moveDir.sub(forward);
   }
   if (keysPressed['a'] || keysPressed['arrowleft']) {
-    direction.x -= 1;
+    moveDir.sub(right);
   }
   if (keysPressed['d'] || keysPressed['arrowright']) {
-    direction.x += 1;
+    moveDir.add(right);
   }
 
-  direction.normalize();
+  moveDir.normalize();
 
   // Move camera horizontally
-  camera.position.x += direction.x * moveSpeed;
-  camera.position.z += direction.z * moveSpeed;
+  camera.position.x += moveDir.x * moveSpeed;
+  camera.position.z += moveDir.z * moveSpeed;
 
   // Jumping
   if ((keysPressed[' '] || keysPressed['space']) && !isJumping) {
@@ -110,11 +141,18 @@ function animate() {
   camera.position.y += velocityY;
 
   // Ground collision
-  if (camera.position.y <= 20) {
-    camera.position.y = 20;
+  const groundHeight = 20; // block ground level
+  const eyeHeight = 1.6;
+  if (camera.position.y <= groundHeight + eyeHeight) {
+    camera.position.y = groundHeight + eyeHeight;
     velocityY = 0;
     isJumping = false;
   }
+
+  // Update camera rotation
+  camera.rotation.order = 'YXZ';
+  camera.rotation.y = yaw;
+  camera.rotation.x = pitch;
 
   renderer.render(scene, camera);
 }
