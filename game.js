@@ -404,6 +404,7 @@ function animate() {
 
   // Ground collision
   if (camera.position.y <= groundHeight + eyeHeight) {
+    if (isJumping) console.log("Landed on ground");
     camera.position.y = groundHeight + eyeHeight;
     velocityY = 0;
     isJumping = false;
