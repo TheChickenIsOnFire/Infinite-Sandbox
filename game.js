@@ -183,6 +183,31 @@ function onMouseMove(event) {
   pitch = Math.max(-pitchLimit, Math.min(pitchLimit, pitch));
 }
 
+function perlin2d(x, y) {
+  // Simple pseudo-Perlin noise using Math.sin/cos (placeholder for real noise)
+  return (
+    Math.sin(x * 0.1) * Math.cos(y * 0.1) +
+    0.5 * Math.sin(x * 0.2 + 100) * Math.cos(y * 0.2 + 100)
+  ) * 0.5 + 0.5; // normalize to 0..1
+}
+
+function fractalNoise2D(x, y, octaves = 4, persistence = 0.5, lacunarity = 2.0) {
+  let total = 0;
+  let frequency = 1;
+  let amplitude = 1;
+  let maxValue = 0;  // Used for normalization
+
+  for (let i = 0; i < octaves; i++) {
+    total += perlin2d(x * frequency, y * frequency) * amplitude;
+    maxValue += amplitude;
+
+    amplitude *= persistence;
+    frequency *= lacunarity;
+  }
+
+  return total / maxValue;  // Normalize to 0..1
+}
+
 function generateChunk(chunkX, chunkZ, material, seed) {
   const blockGeo = new THREE.BoxGeometry(blockSize, blockSize, blockSize);
 
@@ -190,7 +215,38 @@ function generateChunk(chunkX, chunkZ, material, seed) {
 
   for (let x = 0; x < chunkSize; x++) {
     for (let z = 0; z < chunkSize; z++) {
-      const height = Math.floor(Math.random() * 3) + 1; // Placeholder height variation
+      // Generate smooth terrain height using noise
+      const worldX = chunkX * chunkSize + x;
+      const worldZ = chunkZ * chunkSize + z;
+
+      let noiseVal = fractalNoise2D(worldX * 0.05, worldZ * 0.05, 5, 0.5, 2.0);
+
+      // Terrain feature thresholds
+      const plainsThreshold = 0.4;
+      const hillsThreshold = 0.6;
+      const mountainsThreshold = 0.8;
+
+      let height;
+      if (noiseVal < plainsThreshold) {
+        // Plains: mostly flat with slight variation
+        const t = noiseVal / plainsThreshold;
+        height = 2 + t * 2;  // 2-4 blocks high
+      } else if (noiseVal < hillsThreshold) {
+        // Hills: gentle slopes
+        const t = (noiseVal - plainsThreshold) / (hillsThreshold - plainsThreshold);
+        height = 4 + t * 6;  // 4-10 blocks high
+      } else if (noiseVal < mountainsThreshold) {
+        // Cliffs: steep rise
+        const t = (noiseVal - hillsThreshold) / (mountainsThreshold - hillsThreshold);
+        height = 10 + t * 10;  // 10-20 blocks high
+      } else {
+        // Mountains: tall and rugged
+        const t = (noiseVal - mountainsThreshold) / (1 - mountainsThreshold);
+        height = 20 + t * 20;  // 20-40 blocks high
+      }
+
+      height = Math.floor(height);
+
       for (let y = 0; y < height; y++) {
         const wx = (chunkX * chunkSize + x);
         const wy = y;
