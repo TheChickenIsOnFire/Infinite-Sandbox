@@ -10,8 +10,14 @@ const eyeHeight = 1.8; // approx 2 blocks tall
 const keysPressed = {};
 let velocityY = 0;
 const moveSpeed = 0.5;
-const jumpSpeed = 1.0;
+const jumpSpeed = 0.3; // reduced jump height
 const gravity = 0.05;
+
+// Player velocity for smooth movement
+const velocity = new THREE.Vector3(0, 0, 0);
+const acceleration = 0.05;
+const friction = 0.1;
+const maxSpeed = 0.5;
 let isJumping = false;
 
 // Mouse look state
@@ -21,6 +27,9 @@ const pitchLimit = Math.PI / 2 - 0.1; // prevent flipping
 let chunkSize = 16;
 let blockSize = 1;
 let chunks = {};
+
+// Persistent placed blocks storage
+const placedBlocks = {};
 
 // Chunk generation resources
 const textureLoader = new THREE.TextureLoader();
@@ -99,6 +108,15 @@ function init(seed) {
         // Left click: remove block
         if (intersect.object !== undefined && intersect.object.geometry.type === 'BoxGeometry') {
           scene.remove(intersect.object);
+
+          // Remove from placed blocks if exists
+          const pos = intersect.object.position;
+          const chunkX = Math.floor(pos.x / (chunkSize * blockSize));
+          const chunkZ = Math.floor(pos.z / (chunkSize * blockSize));
+          const chunkKey = `${chunkX},${chunkZ}`;
+          if (placedBlocks[chunkKey]) {
+            placedBlocks[chunkKey].delete(`${pos.x},${pos.y},${pos.z}`);
+          }
         }
       } else if (event.button === 2) {
         // Right click: place block
@@ -114,6 +132,13 @@ function init(seed) {
         );
         newBlock.position.copy(position);
         scene.add(newBlock);
+
+        // Save placed block
+        const chunkX = Math.floor(newBlock.position.x / (chunkSize * blockSize));
+        const chunkZ = Math.floor(newBlock.position.z / (chunkSize * blockSize));
+        const chunkKey = `${chunkX},${chunkZ}`;
+        if (!placedBlocks[chunkKey]) placedBlocks[chunkKey] = new Set();
+        placedBlocks[chunkKey].add(`${newBlock.position.x},${newBlock.position.y},${newBlock.position.z}`);
       }
     }
   });
@@ -157,21 +182,55 @@ function onMouseMove(event) {
 }
 
 function generateChunk(chunkX, chunkZ, material, seed) {
-  const geometry = new THREE.BoxGeometry(blockSize, blockSize, blockSize);
+  const blockGeo = new THREE.BoxGeometry(blockSize, blockSize, blockSize);
+
+  const blocks = {};
 
   for (let x = 0; x < chunkSize; x++) {
     for (let z = 0; z < chunkSize; z++) {
       const height = Math.floor(Math.random() * 3) + 1; // Placeholder height variation
       for (let y = 0; y < height; y++) {
-        const cube = new THREE.Mesh(geometry, material);
-        cube.position.set(
-          (chunkX * chunkSize + x) * blockSize,
-          y * blockSize,
-          (chunkZ * chunkSize + z) * blockSize
-        );
-        cube.userData.chunkKey = `${chunkX},${chunkZ}`; // tag block with chunk key
-        scene.add(cube);
+        const wx = (chunkX * chunkSize + x);
+        const wy = y;
+        const wz = (chunkZ * chunkSize + z);
+        blocks[`${wx},${wy},${wz}`] = true;
       }
+    }
+  }
+
+  // Add persistent placed blocks for this chunk
+  const chunkKey = `${chunkX},${chunkZ}`;
+  if (placedBlocks[chunkKey]) {
+    for (const posKey of placedBlocks[chunkKey]) {
+      const [wx, wy, wz] = posKey.split(',').map(Number);
+      blocks[`${wx},${wy},${wz}`] = true;
+    }
+  }
+
+  for (const key in blocks) {
+    const [wx, wy, wz] = key.split(',').map(Number);
+
+    // Check neighbors
+    const neighbors = [
+      [1,0,0], [-1,0,0],
+      [0,1,0], [0,-1,0],
+      [0,0,1], [0,0,-1]
+    ];
+
+    let exposed = false;
+    for (const [dx, dy, dz] of neighbors) {
+      const neighborKey = `${wx+dx},${wy+dy},${wz+dz}`;
+      if (!blocks[neighborKey]) {
+        exposed = true;
+        break;
+      }
+    }
+
+    if (exposed) {
+      const cube = new THREE.Mesh(blockGeo, material);
+      cube.position.set(wx * blockSize, wy * blockSize, wz * blockSize);
+      cube.userData.chunkKey = `${chunkX},${chunkZ}`;
+      scene.add(cube);
     }
   }
 }
@@ -232,24 +291,37 @@ function animate() {
   const moveDir = new THREE.Vector3();
 
   if (keysPressed['w'] || keysPressed['arrowup']) {
-    moveDir.add(forward);
+    velocity.x += forward.x * acceleration;
+    velocity.z += forward.z * acceleration;
   }
   if (keysPressed['s'] || keysPressed['arrowdown']) {
-    moveDir.sub(forward);
+    velocity.x -= forward.x * acceleration;
+    velocity.z -= forward.z * acceleration;
   }
   if (keysPressed['a'] || keysPressed['arrowleft']) {
-    moveDir.sub(right);
+    velocity.x -= right.x * acceleration;
+    velocity.z -= right.z * acceleration;
   }
   if (keysPressed['d'] || keysPressed['arrowright']) {
-    moveDir.add(right);
+    velocity.x += right.x * acceleration;
+    velocity.z += right.z * acceleration;
   }
 
-  moveDir.normalize();
+  // Apply friction
+  velocity.x *= (1 - friction);
+  velocity.z *= (1 - friction);
+
+  // Clamp speed
+  const speed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
+  if (speed > maxSpeed) {
+    velocity.x = (velocity.x / speed) * maxSpeed;
+    velocity.z = (velocity.z / speed) * maxSpeed;
+  }
 
   // Predict new position
   const newPos = camera.position.clone();
-  newPos.x += moveDir.x * moveSpeed;
-  newPos.z += moveDir.z * moveSpeed;
+  newPos.x += velocity.x;
+  newPos.z += velocity.z;
 
   // Player bounding box size
   const playerWidth = 0.6;
