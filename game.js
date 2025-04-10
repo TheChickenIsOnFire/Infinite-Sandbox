@@ -245,6 +245,26 @@ function generateChunk(chunkX, chunkZ, material, seed) {
         height = 20 + t * 20;  // 20-40 blocks high
       }
 
+      // Sharpen transitions for more dramatic terrain
+      height = Math.floor(height);
+
+      // Emphasize steepness by applying non-linear shaping
+      const sharp = (val, power = 0.5) => Math.pow(val, power);
+
+      if (noiseVal < plainsThreshold) {
+        const t = noiseVal / plainsThreshold;
+        height = 2 + sharp(t) * 2;  // 2-4 blocks high, mostly flat
+      } else if (noiseVal < hillsThreshold) {
+        const t = (noiseVal - plainsThreshold) / (hillsThreshold - plainsThreshold);
+        height = 4 + sharp(t) * 10;  // 4-14 blocks, sharper hills
+      } else if (noiseVal < mountainsThreshold) {
+        const t = (noiseVal - hillsThreshold) / (mountainsThreshold - hillsThreshold);
+        height = 14 + sharp(t) * 16;  // 14-30 blocks, steep cliffs
+      } else {
+        const t = (noiseVal - mountainsThreshold) / (1 - mountainsThreshold);
+        height = 30 + sharp(t) * 30;  // 30-60 blocks, towering mountains
+      }
+
       height = Math.floor(height);
 
       for (let y = 0; y < height; y++) {
