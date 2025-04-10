@@ -227,28 +227,6 @@ function generateChunk(chunkX, chunkZ, material, seed) {
       const mountainsThreshold = 0.8;
 
       let height;
-      if (noiseVal < plainsThreshold) {
-        // Plains: mostly flat with slight variation
-        const t = noiseVal / plainsThreshold;
-        height = 2 + t * 2;  // 2-4 blocks high
-      } else if (noiseVal < hillsThreshold) {
-        // Hills: gentle slopes
-        const t = (noiseVal - plainsThreshold) / (hillsThreshold - plainsThreshold);
-        height = 4 + t * 6;  // 4-10 blocks high
-      } else if (noiseVal < mountainsThreshold) {
-        // Cliffs: steep rise
-        const t = (noiseVal - hillsThreshold) / (mountainsThreshold - hillsThreshold);
-        height = 10 + t * 10;  // 10-20 blocks high
-      } else {
-        // Mountains: tall and rugged
-        const t = (noiseVal - mountainsThreshold) / (1 - mountainsThreshold);
-        height = 20 + t * 20;  // 20-40 blocks high
-      }
-
-      // Sharpen transitions for more dramatic terrain
-      height = Math.floor(height);
-
-      // Emphasize steepness by applying non-linear shaping
       const sharp = (val, power = 0.5) => Math.pow(val, power);
 
       if (noiseVal < plainsThreshold) {
@@ -267,10 +245,17 @@ function generateChunk(chunkX, chunkZ, material, seed) {
 
       height = Math.floor(height);
 
-      for (let y = 0; y < height; y++) {
+      const maxChunkHeight = 64;  // or desired max vertical size of chunk
+
+      for (let y = 0; y < maxChunkHeight; y++) {
         const wx = (chunkX * chunkSize + x);
         const wy = y;
         const wz = (chunkZ * chunkSize + z);
+
+        // Carve out air above terrain height
+        if (y >= height) {
+          continue; // leave air above terrain surface
+        }
 
         // Clear spawn area: 3x3x3 cube centered at (0,0,0)
         if (
