@@ -375,7 +375,7 @@ function animate() {
     const playerMaxY = camera.position.y;
 
     // Ignore blocks well below player's feet
-    if (maxY < playerMinY) return;
+    if (maxY < playerMinY + 0.2) return; // ignore blocks below or just under feet
     const playerMinZ = camera.position.z - playerWidth/2;
     const playerMaxZ = camera.position.z + playerWidth/2;
 
@@ -411,7 +411,7 @@ function animate() {
     const playerMaxY = camera.position.y;
 
     // Ignore blocks well below player's feet
-    if (maxY < playerMinY) return;
+    if (maxY < playerMinY + 0.2) return; // ignore blocks below or just under feet
     const playerMinZ = newZ - playerWidth/2 - tolerance;
     const playerMaxZ = newZ + playerWidth/2 + tolerance;
 
