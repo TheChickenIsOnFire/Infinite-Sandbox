@@ -168,9 +168,47 @@ function animate() {
 
   moveDir.normalize();
 
-  // Move camera horizontally
-  camera.position.x += moveDir.x * moveSpeed;
-  camera.position.z += moveDir.z * moveSpeed;
+  // Predict new position
+  const newPos = camera.position.clone();
+  newPos.x += moveDir.x * moveSpeed;
+  newPos.z += moveDir.z * moveSpeed;
+
+  // Player bounding box size
+  const playerWidth = 0.6;
+  const playerHeight = 1.8;
+
+  // Check collisions with blocks
+  let collision = false;
+  scene.traverse((obj) => {
+    if (obj.isMesh && obj.geometry.type === 'BoxGeometry') {
+      const pos = obj.position;
+      // AABB of block
+      const minX = pos.x - 0.5, maxX = pos.x + 0.5;
+      const minY = pos.y - 0.5, maxY = pos.y + 0.5;
+      const minZ = pos.z - 0.5, maxZ = pos.z + 0.5;
+
+      // AABB of player (feet to head)
+      const playerMinX = newPos.x - playerWidth/2;
+      const playerMaxX = newPos.x + playerWidth/2;
+      const playerMinY = newPos.y - eyeHeight;
+      const playerMaxY = newPos.y;
+      const playerMinZ = newPos.z - playerWidth/2;
+      const playerMaxZ = newPos.z + playerWidth/2;
+
+      const overlapX = (playerMinX <= maxX) && (playerMaxX >= minX);
+      const overlapY = (playerMinY <= maxY) && (playerMaxY >= minY);
+      const overlapZ = (playerMinZ <= maxZ) && (playerMaxZ >= minZ);
+
+      if (overlapX && overlapY && overlapZ) {
+        collision = true;
+      }
+    }
+  });
+
+  if (!collision) {
+    camera.position.x = newPos.x;
+    camera.position.z = newPos.z;
+  }
 
   // Jumping
   if ((keysPressed[' '] || keysPressed['space']) && !isJumping) {
@@ -184,7 +222,7 @@ function animate() {
 
   // Ground collision
   const groundHeight = 0; // block ground level (terrain base)
-  const eyeHeight = 1.6;
+  const eyeHeight = 1.8; // approx 2 blocks tall
   if (camera.position.y <= groundHeight + eyeHeight) {
     camera.position.y = groundHeight + eyeHeight;
     velocityY = 0;
