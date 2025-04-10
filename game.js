@@ -2,6 +2,10 @@ import * as THREE from './libs/three.module.min.js';
 
 let scene, camera, renderer;
 
+// Player dimensions and ground level (declare early to avoid ReferenceError)
+const groundHeight = 0; // block ground level (terrain base)
+const eyeHeight = 1.8; // approx 2 blocks tall
+
 // Movement state
 const keysPressed = {};
 let velocityY = 0;
@@ -221,8 +225,6 @@ function animate() {
   camera.position.y += velocityY;
 
   // Ground collision
-  const groundHeight = 0; // block ground level (terrain base)
-  const eyeHeight = 1.8; // approx 2 blocks tall
   if (camera.position.y <= groundHeight + eyeHeight) {
     camera.position.y = groundHeight + eyeHeight;
     velocityY = 0;
