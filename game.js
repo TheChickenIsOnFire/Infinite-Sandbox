@@ -131,13 +131,14 @@ function init(seed) {
           intersect.object.material
         );
         newBlock.position.copy(position);
+        const chunkX = Math.floor(newBlock.position.x / (chunkSize * blockSize));
+        const chunkZ = Math.floor(newBlock.position.z / (chunkSize * blockSize));
+        const chunkKey = `${chunkX},${chunkZ}`;
+
         newBlock.userData.chunkKey = chunkKey; // tag with chunk key
         scene.add(newBlock);
 
         // Save placed block
-        const chunkX = Math.floor(newBlock.position.x / (chunkSize * blockSize));
-        const chunkZ = Math.floor(newBlock.position.z / (chunkSize * blockSize));
-        const chunkKey = `${chunkX},${chunkZ}`;
         if (!placedBlocks[chunkKey]) placedBlocks[chunkKey] = new Set();
         placedBlocks[chunkKey].add(`${newBlock.position.x},${newBlock.position.y},${newBlock.position.z}`);
       }
