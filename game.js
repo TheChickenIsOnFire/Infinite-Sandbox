@@ -131,6 +131,7 @@ function init(seed) {
           intersect.object.material
         );
         newBlock.position.copy(position);
+        newBlock.userData.chunkKey = chunkKey; // tag with chunk key
         scene.add(newBlock);
 
         // Save placed block
@@ -150,11 +151,9 @@ function init(seed) {
 
   // Movement key listeners
   window.addEventListener('keydown', (e) => {
-    console.log(`keydown: ${e.key.toLowerCase()}`);
     keysPressed[e.key.toLowerCase()] = true;
   });
   window.addEventListener('keyup', (e) => {
-    console.log(`keyup: ${e.key.toLowerCase()}`);
     keysPressed[e.key.toLowerCase()] = false;
   });
 
@@ -254,18 +253,6 @@ let debugFrameCounter = 0;
 
 function animate() {
   requestAnimationFrame(animate);
-
-  debugFrameCounter++;
-  if (debugFrameCounter % 10 === 0) {  // log every 10 frames
-    console.groupCollapsed("Frame Debug");
-
-    console.log(`Position: (${camera.position.x.toFixed(2)}, ${camera.position.y.toFixed(2)}, ${camera.position.z.toFixed(2)})`);
-    console.log(`Velocity: (${velocity.x.toFixed(2)}, ${velocityY.toFixed(2)}, ${velocity.z.toFixed(2)})`);
-    console.log(`Jumping: ${isJumping}`);
-    console.log(`Keys pressed:`, JSON.stringify(keysPressed));
-
-    console.groupEnd();
-  }
 
   // FPS counter update
   const now = performance.now();
@@ -440,7 +427,6 @@ function animate() {
 
   // Jumping
   if ((keysPressed[' '] || keysPressed['space']) && !isJumping) {
-    console.log("Jump initiated");
     velocityY = jumpSpeed;
     isJumping = true;
   }
