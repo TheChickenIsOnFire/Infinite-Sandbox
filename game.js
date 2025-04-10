@@ -241,6 +241,15 @@ let fps = 0;
 function animate() {
   requestAnimationFrame(animate);
 
+  console.groupCollapsed("Frame Debug");
+
+  console.log(`Position: (${camera.position.x.toFixed(2)}, ${camera.position.y.toFixed(2)}, ${camera.position.z.toFixed(2)})`);
+  console.log(`Velocity: (${velocity.x.toFixed(2)}, ${velocityY.toFixed(2)}, ${velocity.z.toFixed(2)})`);
+  console.log(`Jumping: ${isJumping}`);
+  console.log(`Keys pressed:`, JSON.stringify(keysPressed));
+
+  console.groupEnd();
+
   // FPS counter update
   const now = performance.now();
   fps = 1000 / (now - lastFrameTime);
@@ -394,6 +403,7 @@ function animate() {
 
   // Jumping
   if ((keysPressed[' '] || keysPressed['space']) && !isJumping) {
+    console.log("Jump initiated");
     velocityY = jumpSpeed;
     isJumping = true;
   }
