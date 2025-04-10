@@ -21,7 +21,7 @@ let chunks = {};
 function init(seed) {
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-  camera.position.set(0, 21.6, 20); // eye level 1.6 above ground
+  camera.position.set(0, 21.6, 0); // eye level 1.6 above ground, centered
   yaw = 0;
   pitch = 0;
 
@@ -47,6 +47,48 @@ function init(seed) {
   const blockMaterial = new THREE.MeshLambertMaterial({ map: blockTexture });
 
   generateChunk(0, 0, blockMaterial, seed);
+  
+  // Raycaster for block interaction
+  const raycaster = new THREE.Raycaster();
+  const mouse = new THREE.Vector2();
+  
+  // Handle mouse clicks for breaking/placing blocks
+  window.addEventListener('mousedown', (event) => {
+    // Only if pointer is locked
+    if (document.pointerLockElement !== renderer.domElement) return;
+  
+    raycaster.setFromCamera({ x: 0, y: 0 }, camera); // center of screen
+  
+    const intersects = raycaster.intersectObjects(scene.children, false);
+  
+    if (intersects.length > 0) {
+      const intersect = intersects[0];
+  
+      if (event.button === 0) {
+        // Left click: remove block
+        if (intersect.object !== undefined && intersect.object.geometry.type === 'BoxGeometry') {
+          scene.remove(intersect.object);
+        }
+      } else if (event.button === 2) {
+        // Right click: place block
+        const normal = intersect.face.normal.clone();
+        const position = intersect.point.clone().add(normal.multiplyScalar(0.5));
+        position.x = Math.round(position.x);
+        position.y = Math.round(position.y);
+        position.z = Math.round(position.z);
+  
+        const newBlock = new THREE.Mesh(
+          new THREE.BoxGeometry(1,1,1),
+          intersect.object.material
+        );
+        newBlock.position.copy(position);
+        scene.add(newBlock);
+      }
+    }
+  });
+  
+  // Prevent context menu on right click
+  window.addEventListener('contextmenu', (e) => e.preventDefault());
 
   window.addEventListener('resize', onWindowResize);
 
