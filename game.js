@@ -1,5 +1,5 @@
 import * as THREE from './libs/three.module.min.js';
-import { mergeBufferGeometries } from './libs/BufferGeometryUtils.js';
+import * as BufferGeometryUtils from './libs/BufferGeometryUtils.js';
 
 let scene, camera, renderer;
 
@@ -337,7 +337,7 @@ function generateChunk(chunkX, chunkZ, material, seed) {
     }
   }
 
-  const mergedGeometry = mergeBufferGeometries(geometries, false);
+  const mergedGeometry = BufferGeometryUtils.mergeBufferGeometries(geometries, false);
   const chunkMesh = new THREE.Mesh(mergedGeometry, material);
   chunkMesh.userData.chunkKey = `${chunkX},${chunkZ}`;
   scene.add(chunkMesh);
