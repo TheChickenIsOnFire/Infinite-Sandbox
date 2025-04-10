@@ -442,8 +442,31 @@ function animate() {
   camera.position.y += velocityY;
 
   // Ground collision
-  if (camera.position.y <= groundHeight + eyeHeight) {
-    if (isJumping) console.log("Landed on ground");
+  // Check for blocks directly below player to stop falling
+  let grounded = false;
+  scene.traverse((obj) => {
+    if (!obj.isMesh || obj.geometry.type !== 'BoxGeometry') return;
+    const pos = obj.position;
+
+    // Ignore blocks far away horizontally
+    if (Math.abs(pos.x - camera.position.x) > 0.5) return;
+    if (Math.abs(pos.z - camera.position.z) > 0.5) return;
+
+    const blockTop = pos.y + 0.5;
+    const playerFeet = camera.position.y - eyeHeight;
+
+    // If block is just below feet within small margin
+    if (playerFeet >= blockTop - 0.1 && playerFeet <= blockTop + 0.2) {
+      grounded = true;
+      camera.position.y = blockTop + eyeHeight;
+      velocityY = 0;
+      if (isJumping) console.log("Landed on block at", pos.x, pos.y, pos.z);
+      isJumping = false;
+    }
+  });
+
+  // If below initial ground level, stop falling there as fallback
+  if (!grounded && camera.position.y <= groundHeight + eyeHeight) {
     camera.position.y = groundHeight + eyeHeight;
     velocityY = 0;
     isJumping = false;
