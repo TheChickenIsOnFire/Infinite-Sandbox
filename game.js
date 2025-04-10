@@ -150,9 +150,11 @@ function init(seed) {
 
   // Movement key listeners
   window.addEventListener('keydown', (e) => {
+    console.log(`keydown: ${e.key.toLowerCase()}`);
     keysPressed[e.key.toLowerCase()] = true;
   });
   window.addEventListener('keyup', (e) => {
+    console.log(`keyup: ${e.key.toLowerCase()}`);
     keysPressed[e.key.toLowerCase()] = false;
   });
 
