@@ -238,17 +238,22 @@ function generateChunk(chunkX, chunkZ, material, seed) {
 let lastFrameTime = performance.now();
 let fps = 0;
 
+let debugFrameCounter = 0;
+
 function animate() {
   requestAnimationFrame(animate);
 
-  console.groupCollapsed("Frame Debug");
+  debugFrameCounter++;
+  if (debugFrameCounter % 10 === 0) {  // log every 10 frames
+    console.groupCollapsed("Frame Debug");
 
-  console.log(`Position: (${camera.position.x.toFixed(2)}, ${camera.position.y.toFixed(2)}, ${camera.position.z.toFixed(2)})`);
-  console.log(`Velocity: (${velocity.x.toFixed(2)}, ${velocityY.toFixed(2)}, ${velocity.z.toFixed(2)})`);
-  console.log(`Jumping: ${isJumping}`);
-  console.log(`Keys pressed:`, JSON.stringify(keysPressed));
+    console.log(`Position: (${camera.position.x.toFixed(2)}, ${camera.position.y.toFixed(2)}, ${camera.position.z.toFixed(2)})`);
+    console.log(`Velocity: (${velocity.x.toFixed(2)}, ${velocityY.toFixed(2)}, ${velocity.z.toFixed(2)})`);
+    console.log(`Jumping: ${isJumping}`);
+    console.log(`Keys pressed:`, JSON.stringify(keysPressed));
 
-  console.groupEnd();
+    console.groupEnd();
+  }
 
   // FPS counter update
   const now = performance.now();
