@@ -22,6 +22,15 @@ let chunkSize = 16;
 let blockSize = 1;
 let chunks = {};
 
+// Chunk generation resources
+const textureLoader = new THREE.TextureLoader();
+const blockTexture = textureLoader.load('assets/textures/blocks/block.png');
+blockTexture.magFilter = THREE.NearestFilter;
+blockTexture.minFilter = THREE.NearestMipMapNearestFilter;
+const blockMaterial = new THREE.MeshLambertMaterial({ map: blockTexture });
+const radius = 1; // generate 3x3 chunks around player
+const maxRadius = 2; // max chunks to keep loaded
+
 function init(seed) {
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
@@ -160,26 +169,33 @@ function generateChunk(chunkX, chunkZ, material, seed) {
           y * blockSize,
           (chunkZ * chunkSize + z) * blockSize
         );
+        cube.userData.chunkKey = `${chunkX},${chunkZ}`; // tag block with chunk key
         scene.add(cube);
       }
     }
   }
 }
 
+let lastFrameTime = performance.now();
+let fps = 0;
+
 function animate() {
   requestAnimationFrame(animate);
 
+  // FPS counter update
+  const now = performance.now();
+  fps = 1000 / (now - lastFrameTime);
+  lastFrameTime = now;
+  const fpsCounter = document.getElementById('fpsCounter');
+  if (fpsCounter) {
+    fpsCounter.textContent = 'FPS: ' + fps.toFixed(1);
+  }
+
   // Dynamically generate chunks around player every frame
-  const textureLoader = new THREE.TextureLoader();
-  const blockTexture = textureLoader.load('assets/textures/blocks/block.png');
-  blockTexture.magFilter = THREE.NearestFilter;
-  blockTexture.minFilter = THREE.NearestMipMapNearestFilter;
-  const blockMaterial = new THREE.MeshLambertMaterial({ map: blockTexture });
+  let playerChunkX = Math.floor(camera.position.x / (chunkSize * blockSize));
+  let playerChunkZ = Math.floor(camera.position.z / (chunkSize * blockSize));
 
-  const playerChunkX = Math.floor(camera.position.x / (chunkSize * blockSize));
-  const playerChunkZ = Math.floor(camera.position.z / (chunkSize * blockSize));
-  const radius = 1; // generate 3x3 chunks around player
-
+  // Generate nearby chunks
   for (let dx = -radius; dx <= radius; dx++) {
     for (let dz = -radius; dz <= radius; dz++) {
       const chunkX = playerChunkX + dx;
@@ -191,6 +207,23 @@ function animate() {
       }
     }
   }
+
+  // Unload distant chunks
+  for (const key in chunks) {
+    const [chunkX, chunkZ] = key.split(',').map(Number);
+    const distX = Math.abs(chunkX - playerChunkX);
+    const distZ = Math.abs(chunkZ - playerChunkZ);
+    if (distX > maxRadius || distZ > maxRadius) {
+      // Remove blocks in this chunk
+      scene.children = scene.children.filter(obj => {
+        if (!obj.userData.chunkKey) return true;
+        return obj.userData.chunkKey !== key;
+      });
+      delete chunks[key];
+    }
+  }
+
+  // Dynamically generate chunks around player every frame
 
   // Calculate forward and right vectors from yaw
   const forward = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw));

@@ -56,6 +56,19 @@
     background: #28527a;
   }
 </style>
+<style>
+  #fpsCounter {
+    position: fixed;
+    top: 5px;
+    left: 5px;
+    color: #0f0;
+    background: rgba(0,0,0,0.5);
+    padding: 4px 8px;
+    font-family: monospace;
+    font-size: 14px;
+    z-index: 9999;
+  }
+</style>
 </head>
 <body>
   <div class="menu" style="display: block;">
@@ -96,5 +109,6 @@
 
 <script type="module" src="menu.js"></script>
 <script type="module" src="game.js"></script>
+<div id="fpsCounter">FPS: 0</div>
 </body>
 </html>
