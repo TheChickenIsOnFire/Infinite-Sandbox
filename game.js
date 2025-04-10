@@ -208,6 +208,27 @@ function fractalNoise2D(x, y, octaves = 4, persistence = 0.5, lacunarity = 2.0) 
   return total / maxValue;  // Normalize to 0..1
 }
 
+function caveNoise3D(x, y, z, octaves = 3, persistence = 0.5, lacunarity = 2.0) {
+  let total = 0;
+  let frequency = 1;
+  let amplitude = 1;
+  let maxValue = 0;
+
+  for (let i = 0; i < octaves; i++) {
+    // Use the existing 2D noise as a pseudo-3D noise by combining axes
+    const noiseVal = perlin2d(x * frequency + i * 100, y * frequency + i * 200) *
+                     perlin2d(y * frequency + i * 300, z * frequency + i * 400) *
+                     perlin2d(z * frequency + i * 500, x * frequency + i * 600);
+    total += noiseVal * amplitude;
+    maxValue += amplitude;
+
+    amplitude *= persistence;
+    frequency *= lacunarity;
+  }
+
+  return total / maxValue;  // Normalize to 0..1
+}
+
 function generateChunk(chunkX, chunkZ, material, seed) {
   const blockGeo = new THREE.BoxGeometry(blockSize, blockSize, blockSize);
 
@@ -257,6 +278,13 @@ function generateChunk(chunkX, chunkZ, material, seed) {
           continue; // leave air above terrain surface
         }
 
+        // Cave generation: skip blocks inside caves
+        const caveVal = caveNoise3D(wx * 0.1, wy * 0.1, wz * 0.1, 3, 0.5, 2.0);
+        const caveThreshold = 0.6;
+        if (caveVal > caveThreshold && y < height - 2) {  // caves mostly underground
+          continue; // carve cave
+        }
+
         // Clear spawn area: 3x3x3 cube centered at (0,0,0)
         if (
           wx >= -1 && wx <= 1 &&
@@ -280,6 +308,8 @@ function generateChunk(chunkX, chunkZ, material, seed) {
     }
   }
 
+  const mergedGeometry = new THREE.Geometry();
+
   for (const key in blocks) {
     const [wx, wy, wz] = key.split(',').map(Number);
 
@@ -300,12 +330,15 @@ function generateChunk(chunkX, chunkZ, material, seed) {
     }
 
     if (exposed) {
-      const cube = new THREE.Mesh(blockGeo, material);
-      cube.position.set(wx * blockSize, wy * blockSize, wz * blockSize);
-      cube.userData.chunkKey = `${chunkX},${chunkZ}`;
-      scene.add(cube);
+      const cubeGeo = new THREE.BoxGeometry(blockSize, blockSize, blockSize);
+      cubeGeo.translate(wx * blockSize, wy * blockSize, wz * blockSize);
+      mergedGeometry.merge(cubeGeo);
     }
   }
+
+  const chunkMesh = new THREE.Mesh(mergedGeometry, material);
+  chunkMesh.userData.chunkKey = `${chunkX},${chunkZ}`;
+  scene.add(chunkMesh);
 }
 
 let lastFrameTime = performance.now();
