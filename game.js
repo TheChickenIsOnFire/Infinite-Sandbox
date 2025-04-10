@@ -331,7 +331,7 @@ function generateChunk(chunkX, chunkZ, material, seed) {
     }
 
     if (exposed) {
-      const cubeGeo = new THREE.BoxBufferGeometry(blockSize, blockSize, blockSize);
+      const cubeGeo = new THREE.BoxGeometry(blockSize, blockSize, blockSize);
       cubeGeo.translate(wx * blockSize, wy * blockSize, wz * blockSize);
       geometries.push(cubeGeo);
     }
