@@ -1,4 +1,5 @@
 import * as THREE from './libs/three.module.min.js';
+import { mergeBufferGeometries } from './libs/BufferGeometryUtils.js';
 
 let scene, camera, renderer;
 
@@ -308,7 +309,7 @@ function generateChunk(chunkX, chunkZ, material, seed) {
     }
   }
 
-  const mergedGeometry = new THREE.Geometry();
+  const geometries = [];
 
   for (const key in blocks) {
     const [wx, wy, wz] = key.split(',').map(Number);
@@ -330,12 +331,13 @@ function generateChunk(chunkX, chunkZ, material, seed) {
     }
 
     if (exposed) {
-      const cubeGeo = new THREE.BoxGeometry(blockSize, blockSize, blockSize);
+      const cubeGeo = new THREE.BoxBufferGeometry(blockSize, blockSize, blockSize);
       cubeGeo.translate(wx * blockSize, wy * blockSize, wz * blockSize);
-      mergedGeometry.merge(cubeGeo);
+      geometries.push(cubeGeo);
     }
   }
 
+  const mergedGeometry = mergeBufferGeometries(geometries, false);
   const chunkMesh = new THREE.Mesh(mergedGeometry, material);
   chunkMesh.userData.chunkKey = `${chunkX},${chunkZ}`;
   scene.add(chunkMesh);
