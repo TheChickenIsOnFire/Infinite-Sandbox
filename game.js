@@ -10,14 +10,14 @@ const eyeHeight = 1.8; // approx 2 blocks tall
 const keysPressed = {};
 let velocityY = 0;
 const moveSpeed = 0.5;
-const jumpSpeed = 0.4; // slightly higher jump
+const jumpSpeed = 0.25; // lower jump height, clear 1 block
 const gravity = 0.02;  // reduced gravity for smoother fall
 
 // Player velocity for smooth movement
 const velocity = new THREE.Vector3(0, 0, 0);
 const acceleration = 0.05;
 const friction = 0.1;
-const maxSpeed = 0.5;
+const maxSpeed = 0.3; // slower overall movement speed
 let isJumping = false;
 
 // Mouse look state
@@ -316,21 +316,29 @@ function animate() {
 
   const moveDir = new THREE.Vector3();
 
+  // Air control factor
+  let airControl = 1;
+  if (!isJumping && velocityY === 0) {
+    airControl = 1; // grounded
+  } else {
+    airControl = 0.3; // reduce control in air
+  }
+
   if (keysPressed['w'] || keysPressed['arrowup']) {
-    velocity.x += forward.x * acceleration;
-    velocity.z += forward.z * acceleration;
+    velocity.x += forward.x * acceleration * airControl;
+    velocity.z += forward.z * acceleration * airControl;
   }
   if (keysPressed['s'] || keysPressed['arrowdown']) {
-    velocity.x -= forward.x * acceleration;
-    velocity.z -= forward.z * acceleration;
+    velocity.x -= forward.x * acceleration * airControl;
+    velocity.z -= forward.z * acceleration * airControl;
   }
   if (keysPressed['a'] || keysPressed['arrowleft']) {
-    velocity.x -= right.x * acceleration;
-    velocity.z -= right.z * acceleration;
+    velocity.x -= right.x * acceleration * airControl;
+    velocity.z -= right.z * acceleration * airControl;
   }
   if (keysPressed['d'] || keysPressed['arrowright']) {
-    velocity.x += right.x * acceleration;
-    velocity.z += right.z * acceleration;
+    velocity.x += right.x * acceleration * airControl;
+    velocity.z += right.z * acceleration * airControl;
   }
 
   // Apply friction
