@@ -371,7 +371,10 @@ function animate() {
     const overlapZ = (playerMinZ <= maxZ) && (playerMaxZ >= minZ);
 
     if (overlapX && overlapY && overlapZ) {
+      console.warn(`X COLLISION with block at (${pos.x}, ${pos.y}, ${pos.z})`);
       collisionX = true;
+    } else {
+      console.log(`X no collision with block at (${pos.x}, ${pos.y}, ${pos.z})`);
     }
   });
   if (!collisionX) {
@@ -401,7 +404,10 @@ function animate() {
     const overlapZ = (playerMinZ <= maxZ) && (playerMaxZ >= minZ);
 
     if (overlapX && overlapY && overlapZ) {
+      console.warn(`Z COLLISION with block at (${pos.x}, ${pos.y}, ${pos.z})`);
       collisionZ = true;
+    } else {
+      console.log(`Z no collision with block at (${pos.x}, ${pos.y}, ${pos.z})`);
     }
   });
   if (!collisionZ) {
