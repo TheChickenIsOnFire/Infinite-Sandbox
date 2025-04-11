@@ -1,4 +1,4 @@
-import * as THREE from './libs/three.module.min.js';
+import * as THREE from './libs/three.module.js';
 import * as BufferGeometryUtils from './libs/BufferGeometryUtils.js';
 
 let scene, camera, renderer;
@@ -481,11 +481,13 @@ for (let dz = -radius; dz <= radius; dz++) {
 
   nearbyBlocks.forEach(block => {
     const blockAABB = new THREE.Box3().setFromObject(block);
-    const [collided, normal, time] = sweepAABB.intersectBox(blockAABB);
+    const collided = sweepAABB.intersectsBox(blockAABB);
     
-    if (collided && time < shortestTime) {
-      shortestTime = time;
-      collisionNormal.copy(normal);
+    if (collided) {
+      // We can't get the exact normal and time from intersectsBox,
+      // so we'll need to adjust our collision response logic
+      collisionNormal.set(0, 1, 0); // Simple ground collision normal
+      shortestTime = 1; // Consider it a collision at time 1
     }
   });
 
