@@ -10,6 +10,7 @@ const eyeHeight = 1.8; // approx 2 blocks tall
 // Movement state
 const keysPressed = {};
 let velocityY = 0;
+const playerWidth = 0.5; // Define player width
 const moveSpeed = 0.5;
 const jumpSpeed = 0.25; // lower jump height, clear 1 block
 const gravity = 0.02;  // reduced gravity for smoother fall
@@ -357,17 +358,15 @@ function animate() {
   if (fpsCounter) {
     fpsCounter.textContent = 'FPS: ' + fps.toFixed(1);
   }
+// Dynamically generate chunks around player every frame
+const currentChunkX = Math.floor(camera.position.x / (chunkSize * blockSize));
+const currentChunkZ = Math.floor(camera.position.z / (chunkSize * blockSize));
 
-  // Dynamically generate chunks around player every frame
-  const animCX = Math.floor(camera.position.x / (chunkSize * blockSize));
-  const animCZ = Math.floor(camera.position.z / (chunkSize * blockSize));
-
-  // Generate nearby chunks
-  for (let dx = -radius; dx <= radius; dx++) {
-    for (let dz = -radius; dz <= radius; dz++) {
-      const chunkX = genChunkX + dx;
-      const chunkZ = genChunkZ + dz;
-      const key = `${chunkX},${chunkZ}`;
+// Generate nearby chunks
+for (let dx = -radius; dx <= radius; dx++) {
+  for (let dz = -radius; dz <= radius; dz++) {
+    const chunkX = currentChunkX + dx;
+    const chunkZ = currentChunkZ + dz;
       if (!chunks[key]) {
         generateChunk(chunkX, chunkZ, blockMaterial, 0);
         chunks[key] = true;
@@ -378,8 +377,8 @@ function animate() {
   // Unload distant chunks
   for (const key in chunks) {
     const [chunkX, chunkZ] = key.split(',').map(Number);
-    const distX = Math.abs(chunkX - currentPlayerChunkX);
-    const distZ = Math.abs(chunkZ - currentPlayerChunkZ);
+    const distX = Math.abs(chunkX - currentChunkX);
+    const distZ = Math.abs(chunkZ - currentChunkZ);
     if (distX > maxRadius || distZ > maxRadius) {
       // Remove blocks in this chunk
       scene.children = scene.children.filter(obj => {
@@ -450,6 +449,7 @@ function animate() {
 
   // Apply gravity before movement
   velocityY -= gravity;
+  const newPos = camera.position.clone(); // Define newPos
   newPos.y += velocityY;
 
   // Get nearby blocks using chunk coordinates
@@ -459,7 +459,7 @@ function animate() {
   
   for (let dx = -1; dx <= 1; dx++) {
     for (let dz = -1; dz <= 1; dz++) {
-      const chunkKey = `${collisionChunkX + dx},${collisionChunkZ + dz}`;
+      const chunkKey = `${animChunkX + dx},${animChunkZ + dz}`;
       scene.children.forEach(obj => {
         if (obj.userData.chunkKey === chunkKey && obj.geometry?.type === 'BoxGeometry') {
           nearbyBlocks.push(obj);
