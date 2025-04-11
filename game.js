@@ -76,8 +76,8 @@ function init(seed) {
   
     for (let dx = -radius; dx <= radius; dx++) {
       for (let dz = -radius; dz <= radius; dz++) {
-        const chunkX = playerChunkX + dx;
-        const chunkZ = playerChunkZ + dz;
+        const chunkX = currentPlayerChunkX + dx;
+        const chunkZ = currentPlayerChunkZ + dz;
         const key = `${chunkX},${chunkZ}`;
         if (!chunks[key]) {
           generateChunk(chunkX, chunkZ, material, seed);
@@ -361,14 +361,14 @@ function animate() {
   }
 
   // Dynamically generate chunks around player every frame
-  let playerChunkX = Math.floor(camera.position.x / (chunkSize * blockSize));
-  let playerChunkZ = Math.floor(camera.position.z / (chunkSize * blockSize));
+  const currentPlayerChunkX = Math.floor(camera.position.x / (chunkSize * blockSize));
+  const currentPlayerChunkZ = Math.floor(camera.position.z / (chunkSize * blockSize));
 
   // Generate nearby chunks
   for (let dx = -radius; dx <= radius; dx++) {
     for (let dz = -radius; dz <= radius; dz++) {
-      const chunkX = playerChunkX + dx;
-      const chunkZ = playerChunkZ + dz;
+      const chunkX = currentPlayerChunkX + dx;
+      const chunkZ = currentPlayerChunkZ + dz;
       const key = `${chunkX},${chunkZ}`;
       if (!chunks[key]) {
         generateChunk(chunkX, chunkZ, blockMaterial, 0);
@@ -436,86 +436,87 @@ function animate() {
     velocity.z = (velocity.z / speed) * maxSpeed;
   }
 
-  // Predict new position
-  const newPos = camera.position.clone();
-  newPos.x += velocity.x;
-  newPos.z += velocity.z;
+  // Unified collision detection system
+  const playerAABB = new THREE.Box3(
+    new THREE.Vector3(
+      camera.position.x - playerWidth/2,
+      camera.position.y - eyeHeight,
+      camera.position.z - playerWidth/2
+    ),
+    new THREE.Vector3(
+      camera.position.x + playerWidth/2,
+      camera.position.y,
+      camera.position.z + playerWidth/2
+    )
+  );
 
-  // Player bounding box size
-  const playerWidth = 0.4;  // narrower hitbox for smoother movement
-  const playerHeight = 1.8;
+  // Apply gravity before movement
+  velocityY -= gravity;
+  newPos.y += velocityY;
 
-  // Improved collision detection with tolerance and local filtering
-  const tolerance = 0.05;
-  let newX = newPos.x;
-  let newZ = newPos.z;
-
-  // Check X axis movement
-  let collisionX = false;
-  scene.traverse((obj) => {
-    if (!obj.isMesh) return;
-    console.log('Collision check object:', obj.geometry.type);
-    if (obj.geometry.type !== 'BoxGeometry') return;
-    const pos = obj.position;
-    if (Math.abs(pos.x - newPos.x) > 2 || Math.abs(pos.z - camera.position.z) > 2) return; // skip far blocks
-
-    const minX = pos.x - 0.5, maxX = pos.x + 0.5;
-    const minY = pos.y - 0.5, maxY = pos.y + 0.5;
-    const minZ = pos.z - 0.5, maxZ = pos.z + 0.5;
-
-    const playerMinX = newX - playerWidth/2 - tolerance;
-    const playerMaxX = newX + playerWidth/2 + tolerance;
-    const playerMinY = camera.position.y - eyeHeight + 0.1; // offset to avoid ground sticking
-    const playerMaxY = camera.position.y;
-
-    // Ignore blocks well below player's feet
-    if (maxY < playerMinY + 0.2) return; // ignore blocks below or just under feet
-    const playerMinZ = camera.position.z - playerWidth/2;
-    const playerMaxZ = camera.position.z + playerWidth/2;
-
-    const overlapX = (playerMinX <= maxX) && (playerMaxX >= minX);
-    const overlapY = (playerMinY <= maxY) && (playerMaxY >= minY);
-    const overlapZ = (playerMinZ <= maxZ) && (playerMaxZ >= minZ);
-
-    if (overlapX && overlapY && overlapZ) {
-      collisionX = true;
+  // Get nearby blocks using chunk coordinates
+  const nearbyBlocks = [];
+  const playerChunkX = Math.floor(camera.position.x / (chunkSize * blockSize));
+  const playerChunkZ = Math.floor(camera.position.z / (chunkSize * blockSize));
+  
+  for (let dx = -1; dx <= 1; dx++) {
+    for (let dz = -1; dz <= 1; dz++) {
+      const chunkKey = `${collisionChunkX + dx},${collisionChunkZ + dz}`;
+      scene.children.forEach(obj => {
+        if (obj.userData.chunkKey === chunkKey && obj.geometry?.type === 'BoxGeometry') {
+          nearbyBlocks.push(obj);
+        }
+      });
     }
-  });
-  if (!collisionX) {
-    camera.position.x = newX;
   }
 
-  // Check Z axis movement
-  let collisionZ = false;
-  scene.traverse((obj) => {
-    if (!obj.isMesh) return;
-    console.log('Collision check object:', obj.geometry.type);
-    if (obj.geometry.type !== 'BoxGeometry') return;
-    const pos = obj.position;
-    if (Math.abs(pos.x - camera.position.x) > 2 || Math.abs(pos.z - newPos.z) > 2) return; // skip far blocks
+  // Sweep test for movement
+  const sweepAABB = playerAABB.clone().translate(
+    new THREE.Vector3(velocity.x, velocityY, velocity.z)
+  );
 
-    const minX = pos.x - 0.5, maxX = pos.x + 0.5;
-    const minY = pos.y - 0.5, maxY = pos.y + 0.5;
-    const minZ = pos.z - 0.5, maxZ = pos.z + 0.5;
+  let collisionNormal = new THREE.Vector3();
+  let shortestTime = 1;
 
-    const playerMinX = camera.position.x - playerWidth/2;
-    const playerMaxX = camera.position.x + playerWidth/2;
-    const playerMinY = camera.position.y - eyeHeight + 0.1; // offset to avoid ground sticking
-    const playerMaxY = camera.position.y;
-
-    // Ignore blocks well below player's feet
-    if (maxY < playerMinY + 0.2) return; // ignore blocks below or just under feet
-    const playerMinZ = newZ - playerWidth/2 - tolerance;
-    const playerMaxZ = newZ + playerWidth/2 + tolerance;
-
-    const overlapX = (playerMinX <= maxX) && (playerMaxX >= minX);
-    const overlapY = (playerMinY <= maxY) && (playerMaxY >= minY);
-    const overlapZ = (playerMinZ <= maxZ) && (playerMaxZ >= minZ);
-
-    if (overlapX && overlapY && overlapZ) {
-      collisionZ = true;
+  nearbyBlocks.forEach(block => {
+    const blockAABB = new THREE.Box3().setFromObject(block);
+    const [collided, normal, time] = sweepAABB.intersectBox(blockAABB);
+    
+    if (collided && time < shortestTime) {
+      shortestTime = time;
+      collisionNormal.copy(normal);
     }
   });
+
+  // Apply movement with collision response
+  if (shortestTime < 1) {
+    velocity.multiplyScalar(shortestTime);
+    velocityY *= shortestTime;
+
+    // Bounce off normal (with friction)
+    const bounceFactor = 0.2;
+    const vel = new THREE.Vector3(velocity.x, velocityY, velocity.z);
+    vel.add(collisionNormal.multiplyScalar(-2 * vel.dot(collisionNormal) * bounceFactor));
+    velocity.set(vel.x, vel.y, vel.z);
+
+    // Ground detection
+    if (collisionNormal.y > 0.5) {
+      isJumping = false;
+      velocityY = 0;
+    }
+  }
+
+  // Update final position
+  camera.position.add(velocity);
+  camera.position.y += velocityY;
+
+  // Keep player above ground
+  if (camera.position.y < groundHeight + eyeHeight) {
+    camera.position.y = groundHeight + eyeHeight;
+    velocityY = 0;
+    isJumping = false;
+  }
+
   if (!collisionZ) {
     camera.position.z = newZ;
   }
