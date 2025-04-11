@@ -361,14 +361,14 @@ function animate() {
   }
 
   // Dynamically generate chunks around player every frame
-  const currentPlayerChunkX = Math.floor(camera.position.x / (chunkSize * blockSize));
-  const currentPlayerChunkZ = Math.floor(camera.position.z / (chunkSize * blockSize));
+  const animCX = Math.floor(camera.position.x / (chunkSize * blockSize));
+  const animCZ = Math.floor(camera.position.z / (chunkSize * blockSize));
 
   // Generate nearby chunks
   for (let dx = -radius; dx <= radius; dx++) {
     for (let dz = -radius; dz <= radius; dz++) {
-      const chunkX = currentPlayerChunkX + dx;
-      const chunkZ = currentPlayerChunkZ + dz;
+      const chunkX = genChunkX + dx;
+      const chunkZ = genChunkZ + dz;
       const key = `${chunkX},${chunkZ}`;
       if (!chunks[key]) {
         generateChunk(chunkX, chunkZ, blockMaterial, 0);
@@ -380,8 +380,8 @@ function animate() {
   // Unload distant chunks
   for (const key in chunks) {
     const [chunkX, chunkZ] = key.split(',').map(Number);
-    const distX = Math.abs(chunkX - playerChunkX);
-    const distZ = Math.abs(chunkZ - playerChunkZ);
+    const distX = Math.abs(chunkX - currentPlayerChunkX);
+    const distZ = Math.abs(chunkZ - currentPlayerChunkZ);
     if (distX > maxRadius || distZ > maxRadius) {
       // Remove blocks in this chunk
       scene.children = scene.children.filter(obj => {
@@ -456,8 +456,8 @@ function animate() {
 
   // Get nearby blocks using chunk coordinates
   const nearbyBlocks = [];
-  const genChunkX = Math.floor(camera.position.x / (chunkSize * blockSize));
-  const genChunkZ = Math.floor(camera.position.z / (chunkSize * blockSize));
+  const animChunkX = Math.floor(camera.position.x / (chunkSize * blockSize));
+  const animChunkZ = Math.floor(camera.position.z / (chunkSize * blockSize));
   
   for (let dx = -1; dx <= 1; dx++) {
     for (let dz = -1; dz <= 1; dz++) {
