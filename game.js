@@ -453,7 +453,9 @@ function animate() {
   // Check X axis movement
   let collisionX = false;
   scene.traverse((obj) => {
-    if (!obj.isMesh || obj.geometry.type !== 'BoxGeometry') return;
+    if (!obj.isMesh) return;
+    console.log('Collision check object:', obj.geometry.type);
+    if (obj.geometry.type !== 'BoxGeometry') return;
     const pos = obj.position;
     if (Math.abs(pos.x - newPos.x) > 2 || Math.abs(pos.z - camera.position.z) > 2) return; // skip far blocks
 
@@ -486,7 +488,9 @@ function animate() {
   // Check Z axis movement
   let collisionZ = false;
   scene.traverse((obj) => {
-    if (!obj.isMesh || obj.geometry.type !== 'BoxGeometry') return;
+    if (!obj.isMesh) return;
+    console.log('Collision check object:', obj.geometry.type);
+    if (obj.geometry.type !== 'BoxGeometry') return;
     const pos = obj.position;
     if (Math.abs(pos.x - camera.position.x) > 2 || Math.abs(pos.z - newPos.z) > 2) return; // skip far blocks
 
