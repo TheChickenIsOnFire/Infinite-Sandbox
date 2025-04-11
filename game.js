@@ -517,9 +517,9 @@ for (let dz = -radius; dz <= radius; dz++) {
     isJumping = false;
   }
 
-  if (!collisionZ) {
-    camera.position.z = newZ;
-  }
+  // if (!collisionZ) {
+  //   camera.position.z = newZ;
+  // }
 
   // Jumping
   if ((keysPressed[' '] || keysPressed['space']) && !isJumping) {
