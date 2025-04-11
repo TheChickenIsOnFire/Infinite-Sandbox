@@ -448,6 +448,7 @@ for (let dz = -radius; dz <= radius; dz++) {
       camera.position.z + playerWidth/2
     )
   );
+  console.log('playerAABB:', playerAABB);
 
   // Apply gravity before movement
   velocityY -= gravity;
