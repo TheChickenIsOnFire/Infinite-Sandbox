@@ -76,8 +76,8 @@ function init(seed) {
   
     for (let dx = -radius; dx <= radius; dx++) {
       for (let dz = -radius; dz <= radius; dz++) {
-        const chunkX = currentPlayerChunkX + dx;
-        const chunkZ = currentPlayerChunkZ + dz;
+        const chunkX = genChunkX + dx;
+        const chunkZ = genChunkZ + dz;
         const key = `${chunkX},${chunkZ}`;
         if (!chunks[key]) {
           generateChunk(chunkX, chunkZ, material, seed);
