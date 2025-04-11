@@ -4,9 +4,11 @@ import { startGame } from './game.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   console.log("Attaching menu event listeners");
+  console.log("Exit button element:", document.getElementById('exitButton'));
 
   document.getElementById('exitButton').addEventListener('click', () => {
     console.log("Exit button clicked");
+    console.log("Window close called");
     window.close();
   });
 
