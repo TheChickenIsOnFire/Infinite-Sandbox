@@ -70,14 +70,12 @@ function init(seed) {
   const blockMaterial = new THREE.MeshLambertMaterial({ map: blockTexture });
 
   function generateChunksAroundPlayer(material, seed) {
-    const genChunkX = Math.floor(camera.position.x / (chunkSize * blockSize));
-    const genChunkZ = Math.floor(camera.position.z / (chunkSize * blockSize));
     const radius = 1; // generate 3x3 chunks around player
   
     for (let dx = -radius; dx <= radius; dx++) {
       for (let dz = -radius; dz <= radius; dz++) {
-        const chunkX = genChunkX + dx;
-        const chunkZ = genChunkZ + dz;
+        const chunkX = Math.floor(camera.position.x / (chunkSize * blockSize)) + dx;
+        const chunkZ = Math.floor(camera.position.z / (chunkSize * blockSize)) + dz;
         const key = `${chunkX},${chunkZ}`;
         if (!chunks[key]) {
           generateChunk(chunkX, chunkZ, material, seed);
