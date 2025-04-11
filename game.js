@@ -87,7 +87,8 @@ function init(seed) {
   }
   
   generateChunksAroundPlayer(blockMaterial, seed);
-  
+  console.log('Chunks generated around player');
+  console.log('Scene children count:', scene.children.length);
   // Raycaster for block interaction
   const raycaster = new THREE.Raycaster();
   const mouse = new THREE.Vector2();
@@ -364,13 +365,14 @@ const currentChunkZ = Math.floor(camera.position.z / (chunkSize * blockSize));
 
 // Generate nearby chunks
 for (let dx = -radius; dx <= radius; dx++) {
-  for (let dz = -radius; dz <= radius; dz++) {
-    const chunkX = currentChunkX + dx;
-    const chunkZ = currentChunkZ + dz;
-      if (!chunks[key]) {
-        generateChunk(chunkX, chunkZ, blockMaterial, 0);
-        chunks[key] = true;
-      }
+for (let dz = -radius; dz <= radius; dz++) {
+  const chunkX = currentChunkX + dx;
+  const chunkZ = currentChunkZ + dz;
+  const key = `${chunkX},${chunkZ}`;
+  if (!chunks[key]) {
+    generateChunk(chunkX, chunkZ, blockMaterial, 0);
+    chunks[key] = true;
+  }
     }
   }
 
@@ -563,6 +565,8 @@ for (let dx = -radius; dx <= radius; dx++) {
   camera.rotation.order = 'YXZ';
   camera.rotation.y = yaw;
   camera.rotation.x = pitch;
+  console.log('Rendering scene');
+  renderer.render(scene, camera);
 
   renderer.render(scene, camera);
 }
